@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소중한 한 끼 - 저녁 메뉴 추천</title>
+    <style>
+        /* [디자인 시스템] 따뜻한 식탁 테마 */
+        :root {
+            --primary-orange: #ff8c42;
+            --soft-beige: #fdf5e6;
+            --deep-brown: #4a342e;
+            --accent-color: #ffaf7a;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--soft-beige);
+            font-family: 'Pretendard', sans-serif;
+            color: var(--deep-brown);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { color: var(--primary-orange); font-size: 2rem; margin-bottom: 10px; }
+        
+        /* 날씨 표시 바 */
+        #weather-bar {
+            background: var(--accent-color);
+            color: white;
+            padding: 10px;
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* [필터 섹션] */
+        .filter-container {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+        .filter-group { margin-bottom: 15px; }
+        .filter-label { font-weight: bold; display: block; margin-bottom: 8px; }
+        .filter-options { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        select {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            flex: 1;
+            min-width: 120px;
+            color: var(--deep-brown);
+        }
+
+        .main-btn {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, background 0.2s;
+            margin-top: 10px;
+        }
+        .main-btn:active { transform: scale(0.98); }
+
+        /* [추천 카드 섹션] */
+        #result-area { max-width: 600px; margin: 0 auto; min-height: 300px; }
+        .menu-card {
+            background: var(--white);
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            animation: fadeIn 0.6s ease-out;
+            display: none;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .menu-img { width: 100%; height: 200px; background: #eee; object-fit: cover; }
+        .menu-content { padding: 25px; }
+        .menu-tag { display: inline-block; background: var(--soft-beige); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 10px; }
+        .menu-title { font-size: 1.5rem; margin-bottom: 10px; }
+        .menu-info { color: #777; font-size: 0.9rem; margin-bottom: 15px; }
+        
+        /* 장바구니 리스트 */
+        .shopping-list { background: #fffcf0; padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px dashed var(--primary-orange); }
+        .shopping-list h4 { margin-bottom: 10px; font-size: 0.95rem; }
+        .ingredient-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 5px; }
+
+        .action-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .sub-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--primary-orange); background: white; color: var(--primary-orange); font-size: 0.85rem; cursor: pointer; font-weight: bold; }
+        .sub-btn:hover { background: var(--soft-beige); }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div id="weather-bar">🌤️ 오늘의 날씨: <span id="current-weather">비</span> (부침개 각?)</div>
+    <h1>소중한 한 끼</h1>
+    <p>당신의 저녁을 정성껏 추천해드려요.</p>
+</header>
+
+<div class="filter-container">
+    <div class="filter-group">
+        <label class="filter-label">오늘 어떤 맛이 당기나요?</label>
+        <div class="filter-options">
+            <select id="mood">
+                <option value="all">모든 맛</option>
+                <option value="매콤">매콤한 맛</option>
+                <option value="담백">담백한 맛</option>
+                <option value="느끼">느끼/고소한 맛</option>
+            </select>
+            <select id="ingredient">
+                <option value="all">주요 재료</option>
+                <option value="고기">고기</option>
+                <option value="해산물">해산물</option>
+                <option value="채소">채소</option>
+            </select>
+        </div>
+    </div>
+    <button class="main-btn" onclick="recommendMenu()">오늘 뭐 먹지?</button>
+</div>
+
+<div id="result-area">
+    <div id="menu-card" class="menu-card">
+        <div class="menu-img-placeholder" style="height:200px; background: #ffe0b2; display: flex; align-items: center; justify-content: center; font-size: 3rem;">🥘</div>
+        <div class="menu-content">
+            <span class="menu-tag" id="card-tag">#한식 #간편</span>
+            <h2 class="menu-title" id="card-title">메뉴 이름</h2>
+            <p class="menu-info" id="card-desc">메뉴 설명과 레시피 팁이 여기에 들어갑니다.</p>
+            
+            <div class="shopping-list">
+                <h4>🛒 필요한 재료 리스트</h4>
+                <div id="ingredient-list"></div>
+            </div>
+
+            <div class="action-group">
+                <button class="sub-btn" onclick="copyToClipboard()">레시피 복사</button>
+                <button class="sub-btn" onclick="searchMap()">근처 맛집 찾기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // [데이터 구조] 15개 이상의 메뉴 데이터
+    const menuData = [
+        { name: "제육볶음", mood: "매콤", ingredient: "고기", time: "20분", diff: "간편", weather: "맑음", ingredients: ["돼지고기", "고추장", "양파", "파"], tip: "고기를 미리 양념에 30분 재워두면 훨씬 맛있어요!" },
+        { name: "해물파전", mood: "담백", ingredient: "해산물", time: "25분", diff: "정성", weather: "비", ingredients: ["쪽파", "오징어", "부침가루", "홍고추"], tip: "반죽물에 얼음을 넣으면 훨씬 바삭해집니다." },
+        { name: "까르보나라", mood: "느끼", ingredient: "고기", time: "15분", diff: "간편", weather: "맑음", ingredients: ["파스타면", "베이컨", "달걀노른자", "치즈가루"], tip: "불을 끄고 노른자를 섞어야 소스가 떡지지 않아요." },
+        { name: "된장찌개", mood: "담백", ingredient: "채소", time: "20분", diff: "간편", weather: "추움", ingredients: ["된장", "두부", "애호박", "감자"], tip: "멸치 육수를 진하게 내는 것이 핵심입니다." },
+        { name: "마라탕", mood: "매콤", ingredient: "채소", time: "30분", diff: "정성", weather: "비", ingredients: ["푸주", "청경채", "마라소스", "옥수수면"], tip: "사골 육수를 베이스로 쓰면 맛이 깊어집니다." },
+        { name: "스테이크", mood: "담백", ingredient: "고기", time: "15분", diff: "정성", weather: "맑음", ingredients: ["소고기", "로즈마리", "마늘", "버터"], tip: "고기를 굽고 5분간 레스팅하는 것이 필수예요." },
+        { name: "연어덮밥", mood: "담백", ingredient: "해산물", time: "10분", diff: "간편", weather: "맑음", ingredients: ["생연어", "양파", "무순", "간장소스"], tip: "양파는 찬물에 담가 매운기를 빼주세요." },
+        { name: "닭볶음탕", mood: "매콤", ingredient: "고기", time: "40분", diff: "정성", weather: "추움", ingredients: ["생닭", "감자", "당근", "고춧가루"], tip: "설탕을 먼저 넣어 끓이면 간이 더 잘 뱁니다." },
+        { name: "알리오올리오", mood: "느끼", ingredient: "채소", time: "12분", diff: "간편", weather: "맑음", ingredients: ["마늘", "올리브유", "페페론치노", "스파게티"], tip: "면수를 한 국자 넣어 소스를 유화시켜주세요." },
+        { name: "김치수제비", mood: "매콤", ingredient: "채소", time: "30분", diff: "정성", weather: "비", ingredients: ["김치", "밀가루반죽", "멸치육수", "감자"], tip: "반죽을 최대한 얇게 떼어 넣어야 쫄깃해요." },
+        { name: "샤브샤브", mood: "담백", ingredient: "채소", time: "20분", diff: "정성", weather: "추움", ingredients: ["소고기", "각종채소", "버섯", "폰즈소스"], tip: "남은 육수에 죽이나 칼국수는 필수입니다." },
+        { name: "감바스", mood: "느끼", ingredient: "해산물", time: "15분", diff: "간편", weather: "맑음", ingredients: ["새우", "마늘", "올리브유", "바게트"], tip: "마늘이 갈색이 될 때까지 충분히 향을 내세요." },
+        { name: "비빔밥", mood: "매콤", ingredient: "채소", time: "25분", diff: "정성", weather: "맑음", ingredients: ["콩나물", "고사리", "고추장", "달걀"], tip: "참기름은 마지막에 한 바퀴 둘러야 향이 살아요." },
+        { name: "우동", mood: "담백", ingredient: "해산물", time: "10분", diff: "간편", weather: "추움", ingredients: ["우동면", "쯔유", "유부", "쑥갓"], tip: "시판 가쓰오부시 가루를 살짝 넣으면 풍미가 확 살아요." },
+        { name: "감자전", mood: "담백", ingredient: "채소", time: "20분", diff: "정성", weather: "비", ingredients: ["감자", "소금", "식용유"], tip: "강판에 갈아 전분을 가라앉힌 뒤 섞으면 더 쫀득합니다." }
+    ];
+
+    // 모의 날씨 데이터 설정
+    const weatherList = ["비", "맑음", "추움"];
+    const currentWeather = weatherList[Math.floor(Math.random() * weatherList.length)];
+    document.getElementById('current-weather').innerText = currentWeather;
+
+    function recommendMenu() {
+        const moodFilter = document.getElementById('mood').value;
+        const ingFilter = document.getElementById('ingredient').value;
+
+        // 필터링 및 날씨 가중치 로직
+        let filtered = menuData.filter(item => {
+            const moodMatch = moodFilter === 'all' || item.mood === moodFilter;
+            const ingMatch = ingFilter === 'all' || item.ingredient === ingFilter;
+            return moodMatch && ingMatch;
+        });
+
+        if (filtered.length === 0) {
+            alert("조건에 맞는 메뉴가 없어요! 필터를 조금 더 넓게 설정해볼까요?");
+            return;
+        }
+
+        // 날씨가 일치하는 메뉴를 리스트 앞쪽으로 배치 (우선순위)
+        filtered.sort((a, b) => (b.weather === currentWeather) - (a.weather === currentWeather));
+
+        // 상위 3개 중 랜덤 선택 (날씨가 맞는 메뉴가 우선 선택될 확률 증가)
+        const selected = filtered[Math.floor(Math.random() * Math.min(filtered.length, 3))];
+
+        displayMenu(selected);
+    }
+
+    function displayMenu(menu) {
+        const card = document.getElementById('menu-card');
+        card.style.display = 'block';
+        
+        document.getElementById('card-tag').innerText = `#${menu.mood} #${menu.time} #${menu.diff}`;
+        document.getElementById('card-title').innerText = menu.name;
+        document.getElementById('card-desc').innerText = menu.tip;
+
+        // 재료 리스트 생성 (장바구니 기능)
+        const ingList = document.getElementById('ingredient-list');
+        ingList.innerHTML = '';
+        menu.ingredients.forEach(ing => {
+            const div = document.createElement('div');
+            div.className = 'ingredient-item';
+            div.innerHTML = `<input type="checkbox"> <span>${ing}</span>`;
+            ingList.appendChild(div);
+        });
+
+        // 결과창으로 스크롤 부드럽게 이동
+        window.scrollTo({ top: card.offsetTop - 50, behavior: 'smooth' });
+    }
+
+    function copyToClipboard() {
+        const title = document.getElementById('card-title').innerText;
+        const tip = document.getElementById('card-desc').innerText;
+        const text = `오늘의 추천 메뉴: ${title}\n요리 꿀팁: ${tip}`;
+        navigator.clipboard.writeText(text).then(() => alert('레시피 정보가 복사되었습니다!'));
+    }
+
+    function searchMap() {
+        const title = document.getElementById('card-title').innerText;
+        window.open(`https://map.naver.com/v5/search/${title} 맛집`, '_blank');
+    }
+</script>
+
+</body>
+</html>
